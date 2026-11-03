@@ -84,7 +84,7 @@
     locale = next;
     localStorage.setItem('site-locale', locale);
     document.documentElement.lang = locale === 'zh' ? 'zh-CN' : 'en';
-    document.title = locale === 'zh' ? '丁晓东 — 创意开发者' : 'DING XIAODONG — Creative Developer';
+    document.title = locale === 'zh' ? '丁晓东｜前端开发者与创意开发者 · 个人作品集' : 'Ding Xiaodong 丁晓东 — Creative Developer';
     const description = document.querySelector('meta[name="description"]');
     if (description) description.content = locale === 'zh'
       ? '丁晓东——前端开发者、创意技术探索者。关于创造、思考与交互的数字拼贴。'

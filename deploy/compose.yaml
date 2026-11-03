@@ -1,0 +1,14 @@
+services:
+  portfolio:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    image: ding-xiaodong-portfolio:latest
+    container_name: ding-xiaodong-portfolio
+    restart: unless-stopped
+    networks:
+      - ingress
+networks:
+  ingress:
+    external: true
+    name: aural_frontend

@@ -85,6 +85,10 @@ function OpeningCurtain() {
 
     const start = () => {
       if (disposed || frame) return;
+      if(!window.__dxTitleReady||!window.__dxBagReady){
+        loadTimer=window.setTimeout(start,50);
+        return;
+      }
       timelineStartedAt = performance.now();
       body.classList.add('opening-running');
       frame = requestAnimationFrame(tick);

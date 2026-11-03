@@ -1,4 +1,6 @@
 #opening-root{position:relative;z-index:110}
+body:not(.opening-running):not(.opening-ready)::after{content:"";position:fixed;inset:0;background:#a7e9d2;z-index:111;pointer-events:none}
+.hero-paper .hero-title{color:transparent!important}
 .opening-curtain{position:fixed;inset:0;z-index:110;display:grid;place-items:center;overflow:hidden;background:#a7e9d2;color:#1d2440;will-change:transform;}
 .opening-mark-wrap{display:flex;align-items:center;flex-direction:column;gap:25px;animation:opening-mark-settle .8s cubic-bezier(.2,.75,.25,1) both}
 .opening-mark{font-size:clamp(90px,21vw,300px);font-weight:950;line-height:.78;letter-spacing:-.115em;padding-right:.11em}

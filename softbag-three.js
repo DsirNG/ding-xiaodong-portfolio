@@ -285,6 +285,7 @@ if (host && hero) {
         width:W*host.clientHeight/cameraViewHeight*model.scale.x
       };
       renderer.render(scene,camera);
+      window.__dxBagReady=true;
       window.dispatchEvent(new CustomEvent('dx:bag-pose'));
       // Stop after the cloth settles. A scroll or pointer change wakes it.
       if((entranceAt!==null&&entrance<1)||Math.abs(targetProgress-progress)>.0001 || Math.abs(liftVelocity)>.008 || ms-lastActivity<900)requestFrame();

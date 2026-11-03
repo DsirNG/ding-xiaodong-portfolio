@@ -1,14 +1,14 @@
 import * as THREE from 'three';
 import { HangingRigidBody, calculatePlanarMass, rotate2 } from './hanging-physics.js';
-import { threadCounterPath, TOTAL_SAMPLES } from './threaded-rope.js';
+import { TOTAL_SAMPLES } from './threaded-rope.js';
 import { FontLoader } from 'three/addons/loaders/FontLoader.js';
 import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 import fontData from './assets/title-font.json';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
 // Original typography, 3D materials and intro choreography are preserved.
-// Rope threads through g/o counters; unilateral tension drives 2-D rigid-body rotation.
-// Counter contact is approximated by an effective bearing point; not full 3-D rope collision.
+// Single-strand cords connect the shared DX anchor to metal eyelets above each word.
+// Unilateral tension drives 2-D rigid-body rotation.
 class DynamicTube {
   constructor(material, radius = 2.8, segments = 84, rings = 7) {
     this.radius=radius;this.segments=segments;this.rings=rings;
@@ -142,7 +142,8 @@ if (title && hero) {
     const braidMap=new THREE.CanvasTexture(braidCanvas);braidMap.wrapS=braidMap.wrapT=THREE.RepeatWrapping;braidMap.repeat.set(1,7);braidMap.colorSpace=THREE.SRGBColorSpace;braidMap.anisotropy=4;
     const braidMaterial=new THREE.MeshPhysicalMaterial({map:braidMap,color:0xc6fffa,metalness:.09,roughness:.47,clearcoat:.26,clearcoatRoughness:.38,envMapIntensity:.7,transparent:true,
       depthTest:true,depthWrite:false});
-    const ringAnchor=new THREE.Mesh(new THREE.TorusGeometry(1,.22,10,32),new THREE.MeshStandardMaterial({color:0xd6eee6,metalness:.85,roughness:.22,transparent:true}));
+    const eyeletMaterial=new THREE.MeshStandardMaterial({color:0xf1bd58,metalness:.42,roughness:.22,emissive:0x523000,emissiveIntensity:.12,depthTest:false,depthWrite:false});
+    const ringAnchor=new THREE.Mesh(new THREE.TorusGeometry(1,.14,12,40,Math.PI),new THREE.MeshStandardMaterial({color:0xd6eee6,metalness:.85,roughness:.22,transparent:true}));
     scene.add(ringAnchor);
     const hangers=[3,7,9].map((anchor,index)=>{
       const char=index===0?'g':'o';
@@ -152,22 +153,26 @@ if (title && hero) {
       const holeX=(Math.min(...points.map(v=>v.x))+Math.max(...points.map(v=>v.x)))/2-letters[anchor].userData.center;
       const holeY=(Math.min(...points.map(v=>v.y))+Math.max(...points.map(v=>v.y)))/2;
       const wire=new DynamicTube(braidMaterial,2.25,TOTAL_SAMPLES,7);
-      // Transparent letters render first. Rope then tests against the real
-      // glyph depth-only pass: front strand visible, back strand occluded.
+      // Keep each single cord above the letters and behind the metal eyelet.
       wire.mesh.renderOrder=20;
       scene.add(wire.mesh);
+      // A polished eyelet sits above the complete word as its keychain bail.
+      // The cord loops through it; the lower edge meets the word's top edge.
+      const eyelet=new THREE.Mesh(new THREE.TorusGeometry(1,.24,12,48),eyeletMaterial);
+      eyelet.renderOrder=30;
+      scene.add(eyelet);
       const minX=Math.min(...points.map(v=>v.x)),maxX=Math.max(...points.map(v=>v.x));
       const minY=Math.min(...points.map(v=>v.y)),maxY=Math.max(...points.map(v=>v.y));
       // Hole dimensions are font-space units; screen scale is applied below.
       return {anchor,holeX,holeY,
         holeRx:Math.max(.05,(maxX-minX)*.45),holeRy:Math.max(.07,(maxY-minY)*.45),
-        glyphTop:letters[anchor].geometry.boundingBox.max.y,
-        wire,index,ropeNodes:null};
+        eyeletRadius:0,
+        wire,eyelet,index};
     });
     // Each four-glyph name is its OWN rigid body. All three share ONE fixed top ring.
     const physical = hangers.map(() => ({
       body:null, mass:null, press:0, initialLength:0, targetLength:0,
-      targetScale:1, scale:1, ready:false
+      targetScale:1, scale:1, hover:0,hoverAt:0,pointerX:0,pointerY:0,followX:0,followY:0,ready:false
     }));
     const wordRanges = [[0, 4], [4, 8], [8, 12]];
     const sharedAnchor = { x: 0, y: 0 };
@@ -232,59 +237,32 @@ if (title && hero) {
     // the hanging-letter motion.
     let startAt=null,frame=0,hoverX=null,hoverY=0;
     let heroReady=false;
+    let hoveredGroup=-1;
+    let heroRevealAt=null;
+    let bagProgress=0;
+    let retractAt=null,retractPoses=null;
     const measure=document.createElement('canvas').getContext('2d');
     let fontSize=100;
     const clamp=value=>Math.min(1,Math.max(0,value));
     const smooth=value=>{const t=clamp(value);return t*t*(3-2*t);};
     const mix=(a,b,t)=>a+(b-a)*t;
+    function keychainCablePath(anchor,connection,zStart,zEnd,index,ringRadius,ropeLength){
+      const start=new THREE.Vector3(anchor.x+(index-1)*1.4,anchor.y,zStart);
+      const end=new THREE.Vector3(connection.x,connection.y+ringRadius*.52,zEnd);
+      const distance=start.distanceTo(end);
+      const slack=Math.max(0,ropeLength-distance);
+      const sag=Math.min(30,slack*.45);
+      const controlA=start.clone().lerp(end,1/3);
+      const controlB=start.clone().lerp(end,2/3);
+      controlA.y-=sag;
+      controlB.y-=sag;
+      return new THREE.CubicBezierCurve3(start,controlA,controlB,end).getPoints(TOTAL_SAMPLES);
+    }
     const mint=new THREE.Color(0x9fe6d0);
     const highlight=new THREE.Color(0xd9fff1);
     // The initial full-width 3-D title is the physical starting pose.
     // Scrolling releases that pose into gravity without a second entrance tween.
     function schedule(){if(!frame)frame=requestAnimationFrame(render);}
-    function simulateRope(hanger,raw,threadStart,threadEnd,dt){
-      const points=raw.map(p=>new THREE.Vector3(p.x,p.y,p.z));
-      if(!hanger.ropeNodes||hanger.ropeNodes.length!==points.length){
-        hanger.ropeNodes=points.map(p=>({position:p.clone(),previous:p.clone()}));
-      }
-      const nodes=hanger.ropeNodes,last=nodes.length-1;
-      const fixed=i=>i===0||i===last||(i>=threadStart&&i<=threadEnd);
-      const decay=Math.exp(-dt*7.5);
-      for(let i=0;i<nodes.length;i++){
-        const node=nodes[i];
-        if(fixed(i)){
-          node.position.copy(points[i]);node.previous.copy(points[i]);continue;
-        }
-        const vx=(node.position.x-node.previous.x)*decay;
-        const vy=(node.position.y-node.previous.y)*decay;
-        const vz=(node.position.z-node.previous.z)*decay;
-        node.previous.copy(node.position);
-        node.position.x+=vx;
-        node.position.y+=vy-260*dt*dt;
-        node.position.z+=vz;
-        // Small attraction toward an aerodynamically fair curve; NOT a
-        // hard pose snap. The letter-contact section stays exactly pinned.
-        node.position.lerp(points[i],Math.min(1,dt*4));
-      }
-      for(let pass=0;pass<7;pass++){
-        for(let i=0;i<last;i++){
-          const pa=nodes[i].position,pb=nodes[i+1].position;
-          const dx=pb.x-pa.x,dy=pb.y-pa.y,dz=pb.z-pa.z;
-          const length=Math.hypot(dx,dy,dz);
-          if(length<.0001)continue;
-          const rest=points[i].distanceTo(points[i+1])*1.015;
-          const delta=(length-rest)/length;
-          if(delta<=0)continue; // rope links pull, never push
-          const wa=fixed(i)?0:1,wb=fixed(i+1)?0:1,sum=wa+wb;
-          if(!sum)continue;
-          const kA=delta*wa/sum,kB=delta*wb/sum;
-          pa.x+=dx*kA;pa.y+=dy*kA;pa.z+=dz*kA;
-          pb.x-=dx*kB;pb.y-=dy*kB;pb.z-=dz*kB;
-        }
-        for(let i=0;i<nodes.length;i++)if(fixed(i))nodes[i].position.copy(points[i]);
-      }
-      return nodes.map(node=>node.position);
-    }
     function resize(){
       const style=getComputedStyle(title),rect=title.getBoundingClientRect();
       const width=innerWidth,height=innerHeight;
@@ -302,34 +280,36 @@ if (title && hero) {
       camera.left=-width/2;camera.right=width/2;
       camera.top=height/2;camera.bottom=-height/2;
       camera.updateProjectionMatrix();renderer.setSize(width,height,false);
-      const brand=document.querySelector('.masthead .brand')?.getBoundingClientRect();
-      const nextAnchor={x:(brand?.left??20)+25-width/2,
-        y:height/2-(brand?.bottom??70)-1};
-      const shift={x:nextAnchor.x-sharedAnchor.x,y:nextAnchor.y-sharedAnchor.y};
+      const nextAnchor={x:0,y:height/2-22};
+      const anchorShift={x:nextAnchor.x-sharedAnchor.x,y:nextAnchor.y-sharedAnchor.y};
       sharedAnchor.x=nextAnchor.x;sharedAnchor.y=nextAnchor.y;
       const titleX=rect.left+rect.width/2-width/2;
       const titleY=height/2-rect.top-rect.height/2;
       for(let index=0;index<3;index++){
+        const state=physical[index];
         const hanger=hangers[index],attached=letters[hanger.anchor].userData;
         const m=measureWordInPixels(...wordRanges[index]);
         const px=attached.baseX+hanger.holeX*attached.sx;
         const py=attached.baseY+hanger.holeY*attached.sy;
         const targetScale=Math.min(1,(width<680?49:67)/fontSize);
-        const origHook={x:titleX+px,y:titleY+py};
-        // The torque bearing is the LOWER inner wall of the letter's counter.
-        // It coincides with the visible threaded U bend inside the hole.
-        const contactY=py-hanger.holeRy*attached.sy*.75;
-        const attach={x:px-m.center.x,y:contactY-m.center.y};
+        // Mount the hardware at the top center of the whole word, not inside
+        // one glyph's counter. The ring bottom slightly overlaps the lettering.
+        const eyeletRadius=clampNumber(fontSize*.07,7,13);
+        hanger.eyeletRadius=eyeletRadius;
+        const attach={
+          x:(m.bounds.minX+m.bounds.maxX)*.5-m.center.x,
+          y:m.bounds.maxY+eyeletRadius*.78-m.center.y
+        };
         const initialCentre={x:titleX+m.center.x,y:titleY+m.center.y};
         const initialHook={x:initialCentre.x+attach.x,y:initialCentre.y+attach.y};
         const initialLength=Math.max(90,Math.hypot(initialHook.x-sharedAnchor.x,
           initialHook.y-sharedAnchor.y)+22);
-        const targetLength=Math.max(35,Math.min(initialLength*.5,height*[.135,.23,.325][index]));
+        const targetLength=height*[.135,.1875,.24][index];
         const mass=Math.max(1.5,Math.min(5.5,1.2+m.area/22000));
-        const state=physical[index];
         const wasReady=state.ready;
         const previousScale=state.scale;
-        state.mass={...m,px,py};
+        state.mass={...m,px,py,attach};
+        state.initialCentre=initialCentre;
         state.initialLength=initialLength;
         state.targetLength=targetLength;
         state.targetScale=targetScale;
@@ -345,12 +325,11 @@ if (title && hero) {
         }else{
           // Resize is a continuity-preserving rebase, never body.reset().
           const body=state.body;
-          body.position.x+=shift.x;body.position.y+=shift.y;
+          body.position.x+=anchorShift.x;body.position.y+=anchorShift.y;
           body.mass=mass;
           body.attachment={x:attach.x*previousScale,y:attach.y*previousScale};
           body.inertia=Math.max(250,mass*m.unitInertia*previousScale**2);
         }
-        hanger.ropeNodes=null;
       }
       schedule();
     }
@@ -360,22 +339,27 @@ if (title && hero) {
       const dt=lastFrameAt?Math.min(.032,Math.max(1/120,(now-lastFrameAt)/1000)):1/60;
       lastFrameAt=now;
       const elapsed=startAt===null?0:now-startAt;
+      const entrance=reduced?1:smooth((now-heroRevealAt)/900);
+      canvas.style.opacity='1';
+      const retractProgress=retractAt===null?0:smooth((now-retractAt)/750);
+      if(retractAt!==null&&retractProgress>=1){
+        startAt=null;retractAt=null;retractPoses=null;
+      }
       // Scrolling releases the loaded pose into gravity while scale and rope
       // length ease from their exact initial values, with no pose reset.
-      const progress=reduced?1:smooth(elapsed/1450);
-      const ropeProgress=startAt===null?0:smooth(elapsed/1450);
-      const brand=document.querySelector('.masthead .brand')?.getBoundingClientRect();
-      if(brand){
-        // A single stationary top-ring in viewport coordinates.
-        // It does NOT jump in response to scroll progress.
-        sharedAnchor.x=brand.left+25-innerWidth/2;
-        sharedAnchor.y=innerHeight/2-brand.bottom-1;
-      }
-      const from=new THREE.Vector3(sharedAnchor.x,sharedAnchor.y,43);
-      ringAnchor.position.copy(from);
-      ringAnchor.scale.setScalar(Math.max(3.3,fontSize*.050));
-      ringAnchor.rotation.z=reduced||startAt===null?0:Math.sin(now*.00087)*.03;
-      ringAnchor.material.opacity=.93;
+      const departure=smooth(bagProgress/.90);
+      const progress=reduced||startAt!==null?1:departure;
+      const ropeProgress=progress;
+      const mountEntrance=reduced?1:smooth(elapsed/750);
+      const mountOffset=90*(1-mountEntrance)+innerHeight*.72*retractProgress;
+      sharedAnchor.x=0;
+      sharedAnchor.y=innerHeight/2-22+mountOffset;
+      const hangingVisible=startAt!==null;
+      ringAnchor.visible=hangingVisible;
+      ringAnchor.position.set(sharedAnchor.x,innerHeight/2+2+mountOffset,43);
+      ringAnchor.scale.setScalar(24);
+      ringAnchor.rotation.z=Math.PI;
+      ringAnchor.material.opacity=1;
       const output=[];
       for(let index=0;index<3;index++){
         const h=hangers[index],s=physical[index];
@@ -383,13 +367,25 @@ if (title && hero) {
         const body=s.body,m=s.mass,attached=letters[h.anchor].userData;
         const scale=mix(1,s.targetScale,progress);
         s.scale=scale;
-        body.attachment={
-          x:(m.px-m.center.x)*scale,
-          y:(m.py-h.holeRy*attached.sy*.75-m.center.y)*scale
-        };
+        if(startAt===null&&!reduced){
+          body.position.x=mix(s.initialCentre.x,(index-1)*innerWidth*.055,departure);
+          body.position.y=s.initialCentre.y+innerHeight*1.12*departure;
+          body.angle=0;
+          body.velocity.x=body.velocity.y=body.angularVelocity=0;
+        }
+        body.attachment={x:m.attach.x*scale,y:m.attach.y*scale};
         body.inertia=Math.max(250,body.mass*m.unitInertia*scale*scale);
-        body.ropeLength=mix(s.initialLength,s.targetLength,reduced?1:ropeProgress);
-        if(!reduced&&startAt!==null){
+        const impactTime=startAt===null?-1:elapsed/1000-.28-index*.045;
+        const elasticStretch=!reduced&&impactTime>0?
+          Math.max(0,Math.sin(impactTime*7.5))*Math.exp(-impactTime*1.65)*s.targetLength*.85:0;
+        body.ropeLength=mix(s.initialLength,s.targetLength,reduced?1:ropeProgress)+elasticStretch;
+        if(retractAt!==null){
+          const pose=retractPoses[index];
+          body.position.x=mix(pose.x,(index-1)*innerWidth*.055,retractProgress);
+          body.position.y=pose.y+innerHeight*1.3*retractProgress;
+          body.angle=mix(pose.angle,0,retractProgress);
+          body.velocity.x=body.velocity.y=body.angularVelocity=0;
+        }else if(!reduced&&startAt!==null){
           const substeps=Math.max(2,Math.ceil(dt/(1/180)));
           for(let j=0;j<substeps;j++){
             // Persistent low-intensity ambient breeze keeps the 3 charms
@@ -400,10 +396,11 @@ if (title && hero) {
           }
         }
         const hole=body.point({x:(m.px-m.center.x)*scale,y:(m.py-m.center.y)*scale});
+        const connection=body.point(body.attachment);
         const angle=body.angle;
         // Defer all rope geometry updates until the 3-D letters are placed.
         // Otherwise we would measure the PREVIOUS frame's model depth.
-        output[index]={hole,angle,scale,progress};
+        output[index]={hole,connection,angle,scale,progress};
         s.press+=((body.drag?1:0)-s.press)*Math.min(1,dt*18);
         if(physicsMarkers){
           const marker=physicsMarkers[index];
@@ -413,17 +410,23 @@ if (title && hero) {
         }
       }
       transforms=output;
+      physical.forEach((s,i)=>{
+        const blend=1-Math.exp(-dt*12);
+        s.hover+=((hoveredGroup===i&&!reduced?1:0)-s.hover)*blend;
+        s.followX+=(s.pointerX-s.followX)*blend;
+        s.followY+=(s.pointerY-s.followY)*blend;
+      });
       const rect=title.getBoundingClientRect();
       for(let index=0;index<letters.length;index++){
         const mesh=letters[index],occluder=letterOccluders[index];
         const data=mesh.userData,groupIndex=Math.floor(index/4);
         const out=output[groupIndex],s=physical[groupIndex];
         if(!out)continue;
-        const progressGlyph=1;
-        const ease=progressGlyph===1?1:1-Math.exp(-7*progressGlyph)*Math.cos(progressGlyph*9);
+        const progressGlyph=reduced?1:clamp((now-heroRevealAt-index*55)/900);
+        const q=progressGlyph-1;
+        const ease=1+2.3*q*q*q+1.3*q*q;
         const centerX=data.baseX+(mesh.geometry.boundingBox.max.x+mesh.geometry.boundingBox.min.x)*data.sx/2;
-        const proximity=!reduced&&hoverX!==null&&rect.width>0?
-          Math.max(0,1-Math.abs(hoverX-centerX)/(fontSize*1.15)):0;
+        const proximity=0;
         data.influence+=(proximity-data.influence)*.13;
         const localX=(data.baseX-s.mass.px)*out.scale;
         const localY=(data.baseY-s.mass.py-(1-ease)*fontSize*.43+data.influence*fontSize*.018)*out.scale;
@@ -435,8 +438,28 @@ if (title && hero) {
         mesh.scale.set(data.sx*out.scale*(1+s.press*.018),
           data.sy*out.scale*squeeze,data.sx*out.scale*(1+s.press*.018));
         mesh.rotation.x=(1-ease)*-1.15+data.influence*hoverY*-.21*(1-out.progress);
-        mesh.rotation.y=-.055+(1-ease)*(index%2?1.4:-1.4)+out.progress*.18;
-        mesh.rotation.z=out.angle;
+        mesh.rotation.y=-.055+(1-ease)*(index%2?.48:-.48)+out.progress*.18;
+        mesh.rotation.z=out.angle+(1-ease)*(index%2?.10:-.10);
+        const hover=s.hover*progressGlyph;
+        const hoverTime=(now-s.hoverAt)/1000;
+        const slot=index%4;
+        if(groupIndex===0){
+          mesh.position.y+=hover*out.scale*fontSize*(.035+.025*Math.sin(hoverTime*7-slot*.65));
+          mesh.rotation.z+=hover*.045*Math.sin(hoverTime*5-slot*.45);
+        }else if(groupIndex===1){
+          const glyphX=data.baseX-s.mass.center.x;
+          const distance=(s.followX-glyphX)/Math.max(1,fontSize*.65);
+          const influence=Math.exp(-distance*distance*1.5);
+          const vertical=clampNumber(s.followY/Math.max(1,fontSize*.42),-1,1);
+          mesh.rotation.x-=hover*influence*vertical*.38;
+          mesh.rotation.y+=hover*clampNumber(distance,-1,1)*.42;
+          mesh.rotation.z+=hover*influence*clampNumber(distance,-1,1)*.07;
+          mesh.position.y+=hover*influence*out.scale*fontSize*.055;
+          mesh.position.z+=hover*influence*out.scale*fontSize*.16;
+        }else{
+          mesh.position.y+=hover*out.scale*fontSize*.045*Math.sin(hoverTime*5-slot*.85);
+          mesh.rotation.z+=hover*.055*Math.sin(hoverTime*5-slot*.85);
+        }
         mesh.material.forEach(mat=>mat.opacity=Math.min(1,progressGlyph*6));
         mesh.material[0].color.copy(mint).lerp(highlight,data.influence*.28);
         // Invisible duplicate writes the TRUE extruded mesh depth while
@@ -464,17 +487,14 @@ if (title && hero) {
         const data=attached.userData;
         const depth=glyphDepthRange(attached);
         const clearance=h.wire.radius+2.5;
-        const rx=Math.max(4,h.holeRx*data.sx*out.scale*.76);
-        const ry=Math.max(5,h.holeRy*data.sy*out.scale*.77);
-        const topRise=(h.glyphTop-h.holeY)*data.sy*out.scale;
-        const route=threadCounterPath({
-          anchor:sharedAnchor,hole:out.hole,angle:out.angle,rx,ry,topRise,
-          zFront:depth.near+clearance,
-          zBack:depth.far-clearance,
-          zAnchor:ringAnchor.position.z
-        });
-        const cord=simulateRope(h,route.points,route.threadStart,route.threadEnd,startAt===null?0:dt);
-        h.wire.update(cord);
+        const ringRadius=h.eyeletRadius*out.scale;
+        h.eyelet.position.set(out.connection.x,out.connection.y,depth.near+clearance*2);
+        h.eyelet.rotation.z=out.angle;
+        const ringEntrance=reduced?1:smooth((now-heroRevealAt-index*220-300)/650);
+        h.eyelet.scale.setScalar(ringRadius*ringEntrance);
+        h.wire.update(keychainCablePath(sharedAnchor,out.connection,ringAnchor.position.z,
+          depth.near+clearance,index,ringRadius,s.body.ropeLength));
+        h.wire.mesh.visible=hangingVisible;
         h.wire.mesh.material.opacity=.95;
       }
       renderer.render(scene,camera);
@@ -491,26 +511,35 @@ if (title && hero) {
         for(const state of physical){
           if(!state.ready)continue;
           state.body.ropeLength=state.targetLength;
-          state.body.reset({x:sharedAnchor.x,y:sharedAnchor.y-state.targetLength});
-          state.body.angle=-Math.atan2(state.body.attachment.x,state.body.attachment.y||1);
+          state.body.reset({
+            x:sharedAnchor.x-state.body.attachment.x,
+            y:sharedAnchor.y-state.targetLength-state.body.attachment.y
+          },0);
         }
       }
       schedule();
     }
     function markHeroReady(){
+      if(heroRevealAt===null)heroRevealAt=performance.now();
       heroReady=true;
       title.style.color='transparent';
       schedule();
       if(reduced)start();
     }
-    let lastScrollY=window.scrollY;
-    const onPageScroll=()=>{
-      const current=window.scrollY;
-      const moved=Math.abs(current-lastScrollY)>1;
-      lastScrollY=current;
-      if(heroReady&&moved)start();
+    const onBagPose=()=>{
+      const next=window.__dxBagPose?.progress??window.__dxBagProgress??0;
+      if(startAt!==null&&retractAt===null&&next<bagProgress-.00001&&next<.94){
+        retractAt=performance.now();
+        retractPoses=physical.map(s=>({x:s.body.position.x,y:s.body.position.y,angle:s.body.angle}));
+      }
+      bagProgress=next;
+      if(heroReady&&bagProgress>=.97&&retractAt===null)start();
+      schedule();
     };
-    window.addEventListener('scroll',onPageScroll,{passive:true});
+    window.addEventListener('dx:bag-pose',onBagPose);
+    window.addEventListener('dx:bag-scroll',event=>{
+      if(!window.__dxBagPose){bagProgress=event.detail.progress;if(heroReady&&bagProgress>=.97)start();schedule();}
+    });
     window.addEventListener('dx:hero-reveal',markHeroReady,{once:true});
     const openingObserver=new MutationObserver(()=>{
       if(document.body.classList.contains('opening-ready')){
@@ -554,6 +583,21 @@ if (title && hero) {
         schedule();return;
       }
       if(reduced||event.pointerType==='touch')return;
+      const point=worldPointer(event);
+      let next=-1;
+      physical.forEach((s,i)=>{
+        if(!s.ready)return;
+        const local=rotate2({x:point.x-s.body.position.x,y:point.y-s.body.position.y},-s.body.angle);
+        const box=s.mass.bounds,c=s.mass.center,pad=12;
+        if(local.x>=(box.minX-c.x)*s.scale-pad&&local.x<=(box.maxX-c.x)*s.scale+pad&&
+           local.y>=(box.minY-c.y)*s.scale-pad&&local.y<=(box.maxY-c.y)*s.scale+pad){
+          next=i;
+          s.pointerX=local.x/Math.max(.001,s.scale);
+          s.pointerY=local.y/Math.max(.001,s.scale);
+        }
+      });
+      if(next!==hoveredGroup&&next>=0)physical[next].hoverAt=performance.now();
+      hoveredGroup=next;
       const rect=title.getBoundingClientRect();
       hoverX=event.clientX-rect.left-rect.width/2;
       hoverY=(event.clientY-rect.top)/Math.max(rect.height,1)-.5;
@@ -568,6 +612,8 @@ if (title && hero) {
     window.addEventListener('pointerup',onPointerUp);
     window.addEventListener('pointercancel',onPointerUp);
     window.addEventListener('blur',onPointerUp);
+    window.addEventListener('blur',()=>{hoveredGroup=-1;});
+    window.addEventListener('pointerout',event=>{if(!event.relatedTarget)hoveredGroup=-1;});
     window.addEventListener('resize',resize,{passive:true});
     new ResizeObserver(resize).observe(title);
     document.addEventListener('visibilitychange',()=>{
@@ -578,7 +624,17 @@ if (title && hero) {
     // first real page scroll starts gravity and the continuous motion.
     document.body.append(canvas);
     // Keep the original h1 for its layout and accessible name; the visible letters are meshes.
-    title.style.color = '';
+    title.style.color = 'transparent';
     resize();
+    renderer.compile(scene,camera);
+    // Warm the actual positioned meshes and GPU buffers behind the curtain.
+    heroReady=true;heroRevealAt=performance.now()-2000;
+    render(performance.now());
+    heroReady=false;heroRevealAt=null;
+    cancelAnimationFrame(frame);frame=0;
+    canvas.style.opacity='0';
+    window.__dxTitleReady=true;
+    window.dispatchEvent(new CustomEvent('dx:title-ready'));
   }
+  else window.__dxTitleReady=true;
 }
