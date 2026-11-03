@@ -1,0 +1,55 @@
+.workbench{min-height:1150px;padding:92px clamp(24px,6vw,110px) 130px;background:#1d2440;color:#f4f2e9;overflow:hidden}
+#workbench-root{max-width:1500px;margin:auto}
+.bench-intro{position:relative;z-index:2;max-width:760px}
+.bench-intro .marker{position:static;color:#b9e7c6}
+.bench-intro h2{font-size:clamp(64px,8.7vw,145px);font-weight:850;line-height:.89;letter-spacing:-.09em;margin:40px 0 30px}
+.bench-intro h2 em{font-style:normal;color:#b5e3c4}
+.bench-intro p{font-size:clamp(13px,1.25vw,18px);line-height:1.7;color:#c0c8d4;max-width:500px}
+.bench-instruction{display:inline-block;margin:34px 0 30px;font-size:10px;font-weight:800;letter-spacing:.16em;color:#d6eebd}
+.bench-surface{position:relative;z-index:2;margin:0 auto;background:#e6dfcd;border-radius:20px;color:#243047;box-shadow:0 45px 85px #090f26a0,inset 0 1px #fff8;transform:rotate(-1deg);max-width:1280px;padding:24px 32px 22px}
+.bench-surface::before{content:'';position:absolute;inset:12px;border:1px solid #6f6e5e2e;border-radius:12px;pointer-events:none}
+.bench-surface-head,.bench-surface-foot{position:relative;display:flex;justify-content:space-between;font-size:10px;letter-spacing:.15em;font-weight:800;color:#575d58}
+.bench-surface-foot{align-items:center}.bench-surface-foot span:last-child{font-size:24px;color:#718d76}
+.bench-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));grid-template-rows:repeat(2,180px);gap:18px 12px;align-items:center;justify-items:center;margin:25px 5px 15px}
+.bench-object{position:relative;display:flex;align-items:center;justify-content:center;width:100%;height:100%;border:0;background:none;color:#343a37;cursor:default;font:inherit;transition:transform .28s ease;min-width:0}
+.bench-object:nth-child(even){transform:rotate(7deg)}.bench-object:nth-child(odd){transform:rotate(-6deg)}
+.bench-object img{display:block;width:min(13vw,150px);height:min(13vw,150px);object-fit:contain;opacity:var(--object-arrival,1);filter:drop-shadow(0 11px 9px #5c4f3e4a);transition:opacity .12s linear,filter .2s}
+.bench-object>span{position:absolute;bottom:0;left:50%;transform:translateX(-50%);font-size:9px;font-weight:850;letter-spacing:.11em;white-space:nowrap;opacity:.55}
+.bench-object.is-project{cursor:pointer}.bench-object.is-project::before{content:'';position:absolute;width:80%;height:85%;border:2px dashed #46755b;border-radius:50%;opacity:.6;transform:rotate(-18deg)}
+.bench-object.is-project b{position:absolute;top:2px;right:0;background:#b9e7c6;color:#253b32;padding:7px 9px;border-radius:100px;font-size:8px;letter-spacing:.05em;white-space:nowrap}
+.bench-object:hover{transform:translateY(-8px) rotate(0)}.bench-object.is-project:hover img{filter:drop-shadow(0 18px 13px #4a4e3b76)}
+.bench-object:focus-visible,.bench-stories button:focus-visible{outline:3px solid #466e55;outline-offset:3px;border-radius:12px}
+.bench-stories{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:38px auto 0;max-width:1280px}
+.bench-stories button{position:relative;display:grid;grid-template-columns:1fr auto;gap:8px;text-align:left;align-content:start;padding:26px 30px;min-height:165px;background:#293650;border:1px solid #5d6d78;color:#f4f2e9;border-radius:14px;cursor:pointer;transition:background .2s,transform .2s}
+.bench-stories button:hover{background:#354661;transform:translateY(-4px)}.bench-stories small{font-size:10px;letter-spacing:.16em;color:#b9e7c6}.bench-stories strong{grid-column:1;font-size:clamp(26px,3.4vw,48px);line-height:1;letter-spacing:-.06em}.bench-stories span{grid-column:1;font-size:12px;color:#bbc9d2}.bench-stories b{position:absolute;right:28px;top:28px;font-size:24px;font-weight:400}
+#object-flight{position:fixed;inset:0;z-index:30;pointer-events:none;display:none}#object-flight img{position:absolute;top:0;left:0;object-fit:contain;filter:drop-shadow(0 10px 8px #10162455);will-change:transform}
+@media(max-width:680px){.workbench{min-height:920px;padding:70px 18px 90px}.bench-intro h2{font-size:clamp(56px,14vw,83px);margin:31px 0 24px}.bench-instruction{margin:24px 0}.bench-surface{padding:18px 14px;transform:rotate(-.5deg);border-radius:15px}.bench-surface-head,.bench-surface-foot{font-size:7px}.bench-grid{grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(3,112px);gap:8px 4px;margin:17px 0}.bench-object img{width:min(24vw,88px);height:min(24vw,88px)}.bench-object>span{font-size:7px;bottom:-2px}.bench-object.is-project b{font-size:6px;top:-2px;right:-4px;padding:5px}.bench-stories{grid-template-columns:1fr;gap:10px;margin-top:22px}.bench-stories button{min-height:125px;padding:20px}.bench-stories strong{font-size:32px}.bench-stories b{right:20px;top:18px}}
+@media(prefers-reduced-motion:reduce){.bench-object,.bench-stories button{transition:none}}
+.media{min-height:850px}.media .float-zone{height:520px}.media .tile-dinqor{left:16%;top:13%;width:370px;height:270px}.media .tile-film{left:auto;right:15%;top:34%;bottom:auto;width:370px;height:250px}.updates{min-height:640px}.updates .section-heading{margin-bottom:70px}
+@media(max-width:680px){.media{min-height:800px}.media .float-zone{height:530px}.media .tile-dinqor{left:2%;top:12%;width:245px;height:190px}.media .tile-film{right:0;top:54%;width:245px;height:185px}.updates{min-height:590px}}
+
+/* Second scene: the hero's navy stage continues after the bag tears. */
+.workbench{padding-top:108px;background:radial-gradient(ellipse 50% 30% at 52% 56%,#313a57 0%,#1d2440 80%);min-height:1320px}
+.bench-intro{max-width:none}.bench-intro .marker{color:#b7e8cc}.bench-intro h2{font-size:clamp(70px,9.1vw,150px);max-width:1100px;margin:45px 0 22px}.bench-intro h2 em{color:#b7e8cc}.bench-intro p{font-size:15px;max-width:660px}.bench-instruction{color:#b7e8cc;margin:30px 0 8px}
+.bench-intro{opacity:var(--intro-arrival,0)}
+.bench-surface{margin-top:0;max-width:1440px;height:640px;padding:0;background:none;box-shadow:none;border-radius:0;transform:none;color:#d9e6e0;overflow:visible}
+.bench-surface::before{content:'UNPACKED';position:absolute;inset:auto 0 11%;border:0;border-radius:0;text-align:center;font-size:clamp(80px,15vw,240px);font-weight:900;letter-spacing:-.09em;line-height:1;color:#b7e8cc0c;white-space:nowrap;pointer-events:none}
+.bench-surface::after{content:'';position:absolute;left:4%;right:4%;bottom:9%;height:1px;background:linear-gradient(90deg,transparent,#b7e8cc4a,transparent);pointer-events:none}
+.bench-surface-head,.bench-surface-foot{position:absolute;left:2%;right:2%;color:#b7e8cc;font-size:10px;z-index:4}
+.bench-surface-head{top:24px}.bench-surface-foot{bottom:20px}.bench-surface-foot span:last-child{color:#b7e8cc}
+.bench-grid{position:absolute;inset:0;display:block;margin:0}
+.bench-object{position:absolute;width:14%;height:29%;transform:rotate(var(--rot,0deg));filter:drop-shadow(0 12px 14px #0a0d2066)}
+.bench-object:nth-child(even),.bench-object:nth-child(odd){transform:rotate(var(--rot,0deg))}
+.bench-object:nth-child(1){left:4%;top:29%;--rot:-16deg}.bench-object:nth-child(2){left:18%;top:10%;--rot:10deg}.bench-object:nth-child(3){left:38%;top:22%;--rot:-8deg}.bench-object:nth-child(4){left:66%;top:9%;--rot:17deg}.bench-object:nth-child(5){left:80%;top:35%;--rot:12deg}.bench-object:nth-child(6){left:7%;top:64%;--rot:9deg}.bench-object:nth-child(7){left:26%;top:61%;--rot:-10deg}.bench-object:nth-child(8){left:56%;top:62%;--rot:7deg}.bench-object:nth-child(9){left:77%;top:70%;--rot:-12deg}
+.bench-object img{width:100%;height:100%;max-width:175px;max-height:175px;filter:drop-shadow(0 20px 13px #070d2375)}
+.bench-object{opacity:var(--object-arrival,0)}
+.bench-object img{width:clamp(86px,9.4vw,146px);height:clamp(86px,9.4vw,146px);max-width:none;max-height:none;opacity:1;transition:filter .2s}
+.bench-object>span{bottom:-5px;color:#eaf5ea;background:#1d2440a8;padding:4px 8px;border-radius:100px;font-size:9px;opacity:.8}
+.bench-object.is-project::before{width:100%;height:96%;border:1.5px dashed #b7e8cc99;border-radius:50%;opacity:1;transform:rotate(-18deg) scale(1.17)}
+.bench-object.is-project b{top:-18px;right:-25px;background:#b7e8cc;color:#1d2440;padding:8px 11px;font-size:8px}
+.bench-object:hover,.bench-object:nth-child(even):hover,.bench-object:nth-child(odd):hover{transform:translateY(-10px) rotate(0deg)}
+.bench-stories{display:block;margin-top:0}.bench-stories button{display:grid;grid-template-columns:100px 1fr 230px 34px;align-items:center;width:100%;min-height:118px;padding:22px 10px;gap:20px;background:transparent;border:0;border-top:1px solid #b7e8cc67;border-radius:0;transition:padding .25s,background .25s;box-shadow:none}
+.bench-stories button:last-child{border-bottom:1px solid #b7e8cc67}.bench-stories button:hover{transform:none;background:#b7e8cc0c;padding-left:26px}
+.bench-stories small{grid-column:1;font-size:11px}.bench-stories strong{grid-column:2;font-size:clamp(34px,4vw,60px)}.bench-stories span{grid-column:3;font-size:12px}.bench-stories b{position:static;grid-column:4;font-size:30px;color:#b7e8cc}
+@media(max-width:680px){.workbench{padding:75px 20px 95px;min-height:1120px}.bench-intro h2{font-size:clamp(58px,13vw,80px);margin:35px 0 20px}.bench-intro p{font-size:12px}.bench-surface{height:540px}.bench-surface::before{font-size:20vw;bottom:25%}.bench-surface-head{top:12px}.bench-surface-foot{bottom:15px}.bench-object{width:28%;height:24%}.bench-object:nth-child(1){left:0;top:16%}.bench-object:nth-child(2){left:35%;top:8%}.bench-object:nth-child(3){left:70%;top:18%}.bench-object:nth-child(4){left:12%;top:39%}.bench-object:nth-child(5){left:53%;top:42%}.bench-object:nth-child(6){left:0;top:68%}.bench-object:nth-child(7){left:35%;top:66%}.bench-object:nth-child(8){left:70%;top:66%}.bench-object:nth-child(9){left:75%;top:43%}.bench-object img{max-width:110px;max-height:110px}.bench-object>span{font-size:7px}.bench-object.is-project b{font-size:6px;right:-8px;top:-12px}.bench-stories button{grid-template-columns:55px 1fr 24px;min-height:110px;gap:8px;padding:15px 4px}.bench-stories strong{grid-column:2;font-size:clamp(27px,8vw,38px)}.bench-stories span{grid-column:2;font-size:10px}.bench-stories b{grid-column:3;grid-row:1 / 3;font-size:25px}.bench-stories small{grid-row:1 / 3;align-self:center;font-size:8px}}
+@media(max-width:680px){.bench-object img{width:clamp(54px,15vw,89px);height:clamp(54px,15vw,89px);max-width:none;max-height:none}}

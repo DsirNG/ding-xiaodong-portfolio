@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1d2440"><meta name="description" content="丁晓东——前端开发者、创意技术探索者。关于创造、思考与交互的数字拼贴。">
+<title>DING XIAODONG — Creative Developer</title>
+<link rel="stylesheet" href="./style.css">
+<link rel="stylesheet" href="./paperbag.css">
+<link rel="stylesheet" href="./opening.css">
+<link rel="stylesheet" href="./workbench.css">
+</head>
+<body>
+<div class="grain" aria-hidden="true"></div>
+<div id="opening-root"></div>
+<header class="masthead">
+  <a class="brand" href="#top" aria-label="返回首页">D<span>/</span>X <small>©26</small></a>
+  <div class="header-actions"><button class="circle-btn menu-trigger" type="button" aria-label="打开菜单" aria-expanded="false" aria-controls="siteMenu"><span class="hamburger"><i></i><i></i></span></button><button class="language-toggle" id="languageToggle" type="button" aria-label="Switch to English" aria-pressed="false">EN</button><a class="pill action-primary" href="mailto:hello@dinqor.cn">Say Hello <span class="arrow">↗</span></a></div>
+</header>
+<nav class="menu" id="siteMenu" aria-hidden="true"><div class="menu-inner"><span class="menu-kicker">A LITTLE MAP OF MY HEAD</span><a href="#projects"><span>01</span> Projects <b>↗</b></a><a href="#ideas"><span>02</span> Thoughts <b>↗</b></a><a href="#about"><span>03</span> About <b>↗</b></a><a href="#lab"><span>04</span> Playground <b>↗</b></a><a href="#contact"><span>05</span> Contact <b>↗</b></a><div class="menu-bottom">KEEP MAKING STRANGE THINGS ✳</div></div></nav>
+<main id="top">
+<section class="hero hero-paper stage" id="hero" data-skin="navy" aria-label="A BAG OF IDEAS, READY TO UNFOLD.">
+  <div class="hero-pin" id="heroPin">
+    <div class="hero-upper"><span class="mini-label">A LITTLE CORNER OF THE WEB, BUILT TO EXPLORE<br>CURIOSITY FIRST. RULES OPTIONAL.</span><span class="mini-label hero-upper-right">SCROLL TO UNPACK ↓</span></div>
+    <h1 class="hero-title" aria-label="Ding Xiaodong">Ding Xiaodong</h1>
+    <div class="bag-stage" id="bagScene" aria-label="向下滚动打开装着创意技术工具的纸袋">
+      <div class="bag-ground" id="bagGround" aria-hidden="true"></div>
+      <div class="falling-objects" id="fallingObjects">
+        <div class="drop-object" data-name="vite" aria-hidden="true"><img src="./assets/vite.png" alt="" draggable="false"><span>VITE</span></div>
+        <div class="drop-object" data-name="vue" aria-hidden="true"><img src="./assets/vue.png" alt="" draggable="false"><span>VUE</span></div>
+        <button class="drop-object" type="button" data-name="react" data-id="story" aria-label="React，点击查看交互式故事"><img src="./assets/react.png" alt="React 3D 物件" draggable="false"><span>REACT</span></button>
+        <div class="drop-object" data-name="java" aria-hidden="true"><img src="./assets/java.png" alt="" draggable="false"><span>JAVA</span></div>
+        <button class="drop-object" type="button" data-name="chatgpt" data-id="dinqor" aria-label="ChatGPT，点击查看 AI 项目"><img src="./assets/chatgpt.png" alt="ChatGPT 3D 物件" draggable="false"><span>CHATGPT</span></button>
+        <div class="drop-object" data-name="cloudflare" aria-hidden="true"><img src="./assets/cloudflare.png" alt="" draggable="false"><span>CLOUDFLARE</span></div>
+        <div class="drop-object" data-name="webstorm" aria-hidden="true"><img src="./assets/webstorm.png" alt="" draggable="false"><span>WEBSTORM</span></div>
+        <div class="drop-object" data-name="idea" aria-hidden="true"><img src="./assets/idea.png" alt="" draggable="false"><span>IDEA</span></div>
+        <div class="drop-object" data-name="chrome" aria-hidden="true"><img src="./assets/chrome.png" alt="" draggable="false"><span>CHROME</span></div>
+      </div>
+      <div class="bag-render" id="bagRender" aria-label="Three.js 牛皮纸袋软体网格">
+        <img class="bag-no-webgl" src="./assets/bag.png" alt="封闭牛皮纸袋" draggable="false" />
+      </div>
+      <div class="paper-debris" id="paperDebris" aria-hidden="true"></div>
+    </div>
+    <div class="bag-hint" id="bagHint"><span class="hint-arrow">↳</span><span id="bagHintText">A BAG FULL OF IDEAS.<br>SCROLL TO UNPACK IT.</span></div>
+    <div class="hero-bottom"><div class="latest-card" tabindex="0" role="button" aria-label="查看最新作品" data-project="dinqor"><div class="pink-note">Latest<span>↗</span></div><div class="latest-cover"><span>DINQOR<br>AI.</span><span class="cover-dot">✷</span></div><div class="latest-desc">NEW / A NEW KIND OF<br>CREATIVE LABORATORY</div></div><div class="hero-socials"><a href="https://github.com/" target="_blank" rel="noreferrer" aria-label="GitHub">GH</a><a href="#projects" aria-label="作品">WK</a><a href="#lab" aria-label="实验室">LAB</a><a href="mailto:hello@dinqor.cn" aria-label="邮件">✉</a></div></div>
+    <div class="hero-caption" id="bagStageLabel">CURIOUS THINGS AHEAD.<br>SCROLL SLOWLY ↓</div>
+  </div>
+</section>
+<section class="workbench stage" id="ideas" data-skin="navy"><div id="workbench-root"></div></section>
+<section class="media stage" id="projects" data-skin="navy"><div class="marker">02 — WORKS IN THE WILD</div><h2 class="section-heading reveal">Things I've <em>made</em></h2><div class="float-zone" id="floatZone"><span class="float-cue">MOVE YOUR CURSOR THROUGH THESE ↗<br>THINGS HAVE A LITTLE PERSONAL SPACE</span>
+  <button class="media-tile tile-dinqor" data-project="dinqor" type="button" aria-label="查看 DinQorAI 项目"><div class="photo dark-proj"><span class="window-bar"><i></i><i></i><i></i></span><span class="proj-mini">D/ <small>ARTIFICIAL INTELLIGENCE</small></span><strong>Imagine<br>More<span class="pink">.</span></strong><span class="fake-field">What will we create today?　 →</span><b class="tiny-tag">DINQOR AI</b></div></button>
+  <button class="media-tile tile-film" data-project="story" type="button" aria-label="查看分支互动故事项目"><div class="photo film-proj"><span class="moon"></span><i class="horizon"></i><span class="film-info">EVERY CHOICE<br>CHANGES A STORY</span><span class="filmstrip">▦ ▦ ▦ ▦ ▦ ▦ ▦ ▦ ▦ ▦ ▦</span></div></button>
+  <div class="float-reticle" aria-hidden="true"></div>
+ </div><p class="media-hint">TWO STORIES, STILL UNFOLDING. CLICK TO EXPLORE.</p></section>
+<section class="about stage" id="about" data-skin="charcoal"><div class="marker">03 — ABOUT THIS GUY</div><h2 class="section-heading two-line reveal">Meet<br><em>this curious human</em></h2><div class="about-art"><div class="head-crop"><img src="./assets/creative-head.png" alt="创作者概念肖像" draggable="false"></div><span class="speech">What next? <b>↗</b></span><span class="thought-doodle">✴<br>✴</span></div><p class="about-splash reveal">A curious <em>mind</em><br>that won't sit still.</p><div class="about-bottom"><div class="about-tag">DING XIAODONG<br>FRONTEND DEVELOPER<br>CREATIVE TECHNOLOGIST</div><div class="about-copy">我是丁晓东，一个喜欢把想法从屏幕里拉出来的人。<br>我写代码、做交互、研究光学效果，也喜欢把故事设计成可以选择的世界。<br><br>React / Vue / WebGL / Creative Coding<div class="about-action"><button class="pill" data-project="bio">More About Me　↗</button></div></div></div></section>
+<section class="updates stage" data-skin="charcoal"><div class="marker">04 — KEEPING BUSY</div><h2 class="section-heading reveal">Recent <em>obsessions</em></h2><div class="update-list"><button class="update-row" data-project="dinqor"><time>2026 / NOW</time><strong>DinQorAI</strong><span>一个面向创作者的多模态 AI 工作空间。<br>让工具足够简单，让想象不受限制。</span><b>↗</b></button><button class="update-row" data-project="story"><time>2026 / IN PROGRESS</time><strong>Interactive Stories</strong><span>在视频里作出选择。<br>让故事真正从这里分叉。</span><b>↗</b></button></div></section>
+<section class="quote stage" data-skin="navy"><span class="marker">05 — A THOUGHT</span><blockquote class="reveal">The best ideas happen when you stay <em>curious.</em></blockquote><span class="quote-credit">— MY WORKING PHILOSOPHY<br>ALWAYS LEARNING. ALWAYS BUILDING.</span><span class="quote-doodle">↝</span></section>
+<section class="play stage" id="lab" data-skin="navy"><span class="marker">06 — PLAYGROUND</span><h2 class="section-heading reveal"><em>Ideas</em> on the side</h2><div class="play-stage"><div class="lab-illustration" id="labScene"><div class="lab-object o1">✳</div><div class="lab-object o2"><span>&lt;/&gt;</span></div><div class="lab-object o3">✿</div><div class="lab-object o4">▲</div><div class="lab-object o5">◈</div><div class="lab-object o6">☺</div><div class="lab-object o7">→</div><div class="lab-object o8">*</div><div class="lab-center"><span>GO ON.</span><strong>POKE<br>AROUND</strong><small>MOVE YOUR MOUSE ↗</small></div></div><div class="play-detail">A FEW THINGS THAT SHOULDN'T EXIST—BUT DO.<br><span>小实验、没完成的点子、奇怪而有趣的 Web 技术。</span></div></div></section>
+<section class="end stage" id="contact" data-skin="navy"><div class="marker">07 — END? NOT REALLY.</div><h2 class="end-title">Keep in<br><em>touch.</em><span class="dot">*</span></h2><p>Have an idea? A strange question? Something worth making?<br>好想法往往从一句「要不要试试」开始。</p><a class="pill end-button" href="mailto:hello@dinqor.cn">Let's Make Something Together　↗</a><div class="end-asterisk" aria-hidden="true">✳</div></section>
+</main>
+<footer class="site-footer"><div class="footer-brand">D<span>/</span>X</div><div><span>© 2026 DING XIAODONG</span><span>MADE WITH CURIOSITY & TOO MUCH COFFEE.</span></div><a href="#top">BACK TO TOP ↑</a></footer>
+<div class="project-overlay" id="projectOverlay" role="dialog" aria-modal="true" aria-label="项目详情" aria-hidden="true"><div class="project-panel"><button class="close-panel" aria-label="关闭项目详情">×</button><div class="project-no">A CLOSER LOOK · <span id="modalId">01</span></div><h2 id="modalTitle">PROJECT</h2><div class="modal-divider"></div><p id="modalEn">Creative experiments for curious people.</p><p id="modalDesc">项目介绍</p><div class="modal-tags" id="modalTags"></div><button class="pill" id="modalNext">Next Project ↗</button><div class="modal-deco">✳</div></div></div>
+
+<script src="./i18n.js" defer></script>
+<script src="./main.js" defer></script>
+<script src="./paperbag.js" defer></script>
+<script type="module" src="./opening.jsx"></script>
+<script type="module" src="./workbench.jsx"></script>
+<script type="module" src="./softbag-three.js"></script>
+<script type="module" src="./title-hover.js"></script>
+</body>
+</html>
