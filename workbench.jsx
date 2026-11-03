@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 
+const imageModules = import.meta.glob('./assets/*.png', { eager: true, query: '?url', import: 'default' });
+const objectImage = key => imageModules[`./assets/${key}.png`];
+
 const objects = [
   ['vite', 'Vite'], ['vue', 'Vue'], ['react', 'React'],
   ['java', 'Java'], ['chatgpt', 'ChatGPT'], ['cloudflare', 'Cloudflare'],
@@ -100,7 +103,7 @@ function Workbench() {
       <div className="bench-grid">
         {objects.map(([key, label], i) => {
           const id = projects[key];
-          const content = <><img src={`./assets/${key}.png`} alt="" draggable="false"/><span>{label}</span>{id && <b>{en ? 'OPEN STORY ↗' : '打开作品 ↗'}</b>}</>;
+          const content = <><img src={objectImage(key)} alt="" draggable="false"/><span>{label}</span>{id && <b>{en ? 'OPEN STORY ↗' : '打开作品 ↗'}</b>}</>;
           return id
             ? <button className={`bench-object bench-object-${key} is-project`} data-bench-name={key} key={key} onClick={() => open(id)} aria-label={`${label}，${en ? 'open project' : '打开作品'}`}>{content}</button>
             : <div className={`bench-object bench-object-${key}`} data-bench-name={key} key={key} aria-label={label}>{content}</div>;
@@ -123,7 +126,7 @@ if (root) {
   flight.setAttribute('aria-hidden', 'true');
   objects.forEach(([key]) => {
     const image = document.createElement('img');
-    image.src = `./assets/${key}.png`;
+    image.src = objectImage(key);
     image.dataset.flightName = key;
     image.alt = '';
     flight.append(image);
