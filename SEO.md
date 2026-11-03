@@ -18,3 +18,6 @@
 
 ## 维护
 修改个人介绍、项目内容或域名时，同步更新 index.html、i18n.js、public 下的内容页、robots.txt 与 sitemap.xml。当前语言切换共用一个 URL，不声明不存在的 hreflang 地址。
+
+## 搜索结果图标
+首页声明稳定的 /favicon.ico、/favicon.svg 和 /favicon-96.png，均允许匿名抓取。96 像素 PNG 用于兼容搜索平台。图标不依赖 JavaScript。上线后在搜索平台申请重新抓取首页；实际是否展示以及更新时间由搜索平台决定，分享预览图与搜索结果 favicon 是两种不同资源。
