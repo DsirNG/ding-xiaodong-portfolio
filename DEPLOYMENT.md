@@ -8,7 +8,7 @@
 - 连接：`ssh dxd`。
 - 工作目录：`/opt/ding-xiaodong-portfolio`。
 - 独立容器：`ding-xiaodong-portfolio`，重启策略 `unless-stopped`。
-- 当前镜像：`ding-xiaodong-portfolio:asset-fix-20261104`。
+- 当前镜像：`ding-xiaodong-portfolio:logo-20261104`。
 - 入口容器：`aural-nginx`，与现有音乐 API 共用 80/443，通过 server_name 隔离。
 - 外部 Docker 网络：`aural_frontend`，作品集不额外暴露宿主机端口。
 - 入口配置：`/opt/aural/app/deploy/selfhost/nginx.conf`。
